@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LiveScore Pro – Scores en Direct</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #080c14;
+  --bg2: #0e1520;
+  --bg3: #131d2e;
+  --card: #0f1825;
+  --border: #1a2540;
+  --border2: #243050;
+  --green: #00ff87;
+  --green-dim: #00c96a;
+  --yellow: #ffd93d;
+  --red: #ff4757;
+  --blue: #3d9eff;
+  --purple: #a855f7;
+  --txt: #e8eef8;
+  --muted: #5a6a8a;
+  --muted2: #7a8aaa;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === BACKGROUND === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,255,135,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 0% 50%, rgba(61,158,255,.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 16px 60px; }
+
+/* === HEADER === */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 3px;
+  color: var(--green);
+  text-shadow: 0 0 20px rgba(0,255,135,.3);
+}
+.logo span { color: var(--txt); }
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--green);
+  background: rgba(0,255,135,.08);
+  border: 1px solid rgba(0,255,135,.25);
+  border-radius: 20px;
+  padding: 5px 12px;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: blink .9s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* header right */
+.hdr-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.date-picker {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--txt);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  cursor: pointer;
+  outline: none;
+}
+
+.refresh-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--muted2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.refresh-btn:hover { border-color: var(--green); color: var(--green); }
+.refresh-btn svg { transition: transform .5s; }
+.refresh-btn.spinning svg { animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === LEAGUE TABS === */
+.leagues-scroll {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.leagues-scroll::-webkit-scrollbar { display: none; }
+
+.leagues-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  white-space: nowrap;
+}
+
+.ltab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted2);
+  white-space: nowrap;
+  user-select: none;
+}
+.ltab:hover { border-color: var(--border2); color: var(--txt); }
+.ltab.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+  box-shadow: 0 4px 20px rgba(0,255,135,.2);
+}
+.ltab .flag { font-size: 15px; }
+.ltab .cnt {
+  background: rgba(0,0,0,.2);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 10px;
+}
+.ltab.active .cnt { background: rgba(0,0,0,.25); }
+
+/* === SUMMARY BAR === */
+.summary-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.scard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 18px;
+  min-width: 100px;
+  flex: 1;
+}
+.scard-label { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.scard-val { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px; }
+.scard-val.green { color: var(--green); }
+.scard-val.yellow { color: var(--yellow); }
+.scard-val.blue { color: var(--blue); }
+.scard-val.white { color: var(--txt); }
+
+/* === MATCH GRID === */
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+
+/* === MATCH CARD === */
+.match-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0;
+  overflow: hidden;
+  transition: all .2s;
+  cursor: pointer;
+  position: relative;
+}
+.match-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,.3);
+}
+.match-card.live-card { border-color: rgba(0,255,135,.3); }
+.match-card.live-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), transparent);
+}
+
+/* league header */
+.card-league {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: rgba(255,255,255,.02);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted2);
+  letter-spacing: .5px;
+}
+.card-league .flag { font-size: 14px; }
+
+/* match body */
+.card-body { padding: 14px 16px; }
+
+/* status */
+.match-status {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.status-pill {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  border-radius: 20px;
+  padding: 3px 10px;
+  text-transform: uppercase;
+}
+.status-live { background: rgba(0,255,135,.12); color: var(--green); border: 1px solid rgba(0,255,135,.3); animation: livePulse 2s infinite; }
+@keyframes livePulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,255,135,.3)} 50%{box-shadow:0 0 0 5px rgba(0,255,135,0)} }
+.status-scheduled { background: rgba(61,158,255,.1); color: var(--blue); border: 1px solid rgba(61,158,255,.25); }
+.status-finished { background: rgba(255,255,255,.05); color: var(--muted2); border: 1px solid var(--border); }
+.status-ht { background: rgba(255,217,61,.1); color: var(--yellow); border: 1px solid rgba(255,217,61,.3); }
+.status-postponed { background: rgba(255,71,87,.1); color: var(--red); border: 1px solid rgba(255,71,87,.25); }
+
+/* teams row */
+.teams-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.team {
+  flex: 1;
+  text-align: center;
+}
+.team-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt);
+  line-height: 1.3;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.team-crest {
+  width: 40px; height: 40px;
+  object-fit: contain;
+  margin: 0 auto 4px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+}
+.team-crest-placeholder {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  margin: 0 auto 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.score-block {
+  min-width: 80px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 2px;
+  line-height: 1;
+  color: var(--txt);
+}
+.score.live { color: var(--green); }
+.score-sep { color: var(--muted); font-size: 28px; font-family: 'Bebas Neue', sans-serif; }
+.match-time-txt {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+  letter-spacing: .5px;
+}
+
+/* scorers */
+.scorers {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted2);
+  min-height: 18px;
+}
+.scorers-side { flex: 1; }
+.scorers-side.right { text-align: right; }
+.scorer-entry { margin-bottom: 2px; }
+
+/* === LOADING === */
+.loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+}
+.loader {
+  width: 44px; height: 44px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+.loader-txt { font-size: 13px; color: var(--muted); }
+
+/* === EMPTY === */
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 52px; margin-bottom: 16px; }
+.empty-title { font-size: 18px; font-weight: 600; color: var(--muted2); margin-bottom: 8px; }
+.empty-sub { font-size: 13px; line-height: 1.6; }
+
+/* === ERROR === */
+.error-box {
+  background: rgba(255,71,87,.08);
+  border: 1px solid rgba(255,71,87,.25);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--red);
+  display: none;
+  line-height: 1.6;
+}
+.error-box.show { display: block; }
+
+/* === API KEY MODAL === */
+.api-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.api-modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 32px 28px;
+  max-width: 480px;
+  width: 100%;
+}
+.api-modal h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+.api-modal p { font-size: 13px; color: var(--muted2); line-height: 1.7; margin-bottom: 16px; }
+.api-modal a { color: var(--green); text-decoration: none; }
+.api-modal a:hover { text-decoration: underline; }
+.api-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--txt);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 12px 14px;
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color .2s;
+}
+.api-input:focus { border-color: var(--green); }
+.api-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: var(--green);
+  color: #000;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .5px;
+  transition: opacity .2s;
+  margin-bottom: 10px;
+}
+.api-btn:hover { opacity: .9; }
+.api-btn-demo {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.api-btn-demo:hover { border-color: var(--blue); color: var(--blue); }
+.api-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* auto refresh indicator */
+.auto-info {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+  margin-top: -14px;
+  margin-bottom: 16px;
+}
+
+/* league section header */
+.league-section { margin-bottom: 6px; }
+.league-section-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 4px;
+  font-size: 12px; font-weight: 700;
+  color: var(--muted2);
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.league-section-hdr .flag { font-size: 16px; }
+
+/* no-cors note */
+.cors-note {
+  background: rgba(61,158,255,.08);
+  border: 1px solid rgba(61,158,255,.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--blue);
+  margin-bottom: 16px;
+  line-height: 1.6;
+  display: none;
+}
+.cors-note.show { display: block; }
+
+@media (max-width: 600px) {
+  .matches-grid { grid-template-columns: 1fr; }
+  .logo { font-size: 26px; }
+  .summary-bar { gap: 7px; }
+  .scard { padding: 10px 12px; min-width: 70px; }
+}
+</style>
+</head>
+<body>
+
+<!-- API Key Modal -->
+<div class="api-overlay" id="apiOverlay">
+  <div class="api-modal">
+    <h2>⚽ LiveScore Pro</h2>
+    <p>Pour afficher les vrais matchs en direct, tu as besoin d'une clé API gratuite de <strong>football-data.org</strong>.</p>
+    <p>📋 <strong>Étapes :</strong><br>
+      1. Va sur <a href="https://www.football-data.org/client/register" target="_blank">football-data.org/client/register</a><br>
+      2. Crée un compte gratuit (email + mot de passe)<br>
+      3. Reçois ta clé API par email<br>
+      4. Colle-la ici
+    </p>
+    <input class="api-input" id="apiKeyInput" type="text" placeholder="Ex: abc123def456abc123def456abc123de" maxlength="40">
+    <button class="api-btn" onclick="saveKey()">Utiliser ma clé API →</button>
+    <button class="api-btn-demo" onclick="useDemo()">Voir la démo avec données simulées</button>
+    <p class="api-note">🔒 Ta clé est stockée localement dans ton navigateur. Plan gratuit = 10 compétitions, 10 requêtes/min.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="logo">Live<span>Score</span></div>
+    <div class="hdr-right">
+      <div class="live-badge"><div class="live-dot"></div>EN DIRECT</div>
+      <input type="date" class="date-picker" id="datePicker" onchange="onDateChange()">
+      <button class="refresh-btn" id="refreshBtn" onclick="loadMatches()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        Actualiser
+      </button>
+      <button class="refresh-btn" onclick="changeKey()" style="font-size:11px;">🔑 Clé API</button>
+    </div>
+  </header>
+
+  <div class="error-box" id="errorBox"></div>
+  <div class="cors-note" id="corsNote">
+    ℹ️ <strong>CORS bloqué par le navigateur.</strong> Pour contourner : utilise un serveur local (ex: <code>npx serve .</code>), ou héberge sur GitHub Pages. En local direct (file://), les requêtes API sont bloquées par le navigateur.
+  </div>
+
+  <!-- League filter tabs -->
+  <div class="leagues-scroll">
+    <div class="leagues-tabs" id="leagueTabs">
+      <div class="ltab active" data-league="ALL" onclick="filterLeague('ALL')">
+        <span class="flag">🌍</span> Tous
+        <span class="cnt" id="cnt-ALL">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-bar">
+    <div class="scard">
+      <div class="scard-label">En direct</div>
+      <div class="scard-val green" id="sumLive">0</div>
+    </div>
+    <div class="scard">
+      <div class="scard-label">Programmés</div>
+      <div class="scard-val blue" id="sumSched">0</div>
+    </div>
+    <div class="scard">
+      <div class="scard-label">Terminés</div>
+      <div class="scard-val white" id="sumFin">0</div>
+    </div>
+    <div class="scard">
+      <div class="scard-label">Total matchs</div>
+      <div class="scard-val yellow" id="sumTotal">0</div>
+    </div>
+  </div>
+
+  <div class="auto-info" id="autoInfo">Actualisation dans <span id="countdownTxt">60</span>s</div>
+
+  <!-- Matches container -->
+  <div id="matchesContainer">
+    <div class="loader-wrap">
+      <div class="loader"></div>
+      <div class="loader-txt">Chargement des matchs...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════
+
+const COMPETITIONS = {
+  PL:  { name:'Premier League',     flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', id:2021 },
+  PD:  { name:'La Liga',            flag:'🇪🇸', id:2014 },
+  BL1: { name:'Bundesliga',         flag:'🇩🇪', id:2002 },
+  SA:  { name:'Serie A',            flag:'🇮🇹', id:2019 },
+  FL1: { name:'Ligue 1',            flag:'🇫🇷', id:2015 },
+  CL:  { name:'Champions League',   flag:'⭐', id:2001 },
+  EL:  { name:'Europa League',      flag:'🟠', id:2146 },
+  EC:  { name:'Euro 2024',          flag:'🇪🇺', id:2018 },
+  WC:  { name:'Coupe du Monde',     flag:'🌍', id:2000 },
+  PPL: { name:'Liga Portugal',      flag:'🇵🇹', id:2017 },
+  DED: { name:'Eredivisie',         flag:'🇳🇱', id:2003 },
+};
+
+let API_KEY = localStorage.getItem('ls_api_key') || '';
+let IS_DEMO = false;
+let allMatches = [];
+let currentLeague = 'ALL';
+let autoRefreshInterval = null;
+let countdownInterval = null;
+let countdownSecs = 60;
+
+// Today's date
+const today = new Date();
+const pad = n => String(n).padStart(2,'0');
+const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+// Init date picker
+const dp = document.getElementById('datePicker');
+dp.value = fmtDate(today);
+dp.max = fmtDate(new Date(Date.now() + 7*86400000));
+dp.min = fmtDate(new Date(Date.now() - 30*86400000));
+
+// ═══════════════════════════════════════════════════
+//  DEMO DATA
+// ═══════════════════════════════════════════════════
+function getDemoMatches(dateStr) {
+  const base = [
+    { id:1, comp:'Champions League', flag:'⭐', homeTeam:'Real Madrid', awayTeam:'Manchester City',
+      homeScore:2, awayScore:1, status:'IN_PLAY', minute:67, homeScorers:['Vinicius 12\'','Benzema 34\''], awayScorers:['Haaland 58\''] },
+    { id:2, comp:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', homeTeam:'Arsenal', awayTeam:'Liverpool',
+      homeScore:1, awayScore:1, status:'IN_PLAY', minute:52, homeScorers:['Saka 28\''], awayScorers:['Salah 41\''] },
+    { id:3, comp:'La Liga', flag:'🇪🇸', homeTeam:'Barcelona', awayTeam:'Atletico Madrid',
+      homeScore:3, awayScore:0, status:'FINISHED', minute:90, homeScorers:['Lewandowski 8\'','Gavi 55\'','Yamal 78\''], awayScorers:[] },
+    { id:4, comp:'Bundesliga', flag:'🇩🇪', homeTeam:'Bayern Munich', awayTeam:'Borussia Dortmund',
+      homeScore:null, awayScore:null, status:'TIMED', kickOff:'20:30', homeScorers:[], awayScorers:[] },
+    { id:5, comp:'Ligue 1', flag:'🇫🇷', homeTeam:'PSG', awayTeam:'Olympique Marseille',
+      homeScore:null, awayScore:null, status:'TIMED', kickOff:'21:00', homeScorers:[], awayScorers:[] },
+    { id:6, comp:'Serie A', flag:'🇮🇹', homeTeam:'Inter Milan', awayTeam:'Juventus',
+      homeScore:2, awayScore:2, status:'FINISHED', minute:90, homeScorers:['Lautaro 23\'','Thuram 71\''], awayScorers:['Vlahovic 44\'','Chiesa 88\''] },
+    { id:7, comp:'Europa League', flag:'🟠', homeTeam:'Roma', awayTeam:'Sevilla',
+      homeScore:1, awayScore:0, status:'IN_PLAY', minute:34, homeScorers:['Dybala 19\''], awayScorers:[] },
+    { id:8, comp:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', homeTeam:'Chelsea', awayTeam:'Tottenham',
+      homeScore:null, awayScore:null, status:'TIMED', kickOff:'18:30', homeScorers:[], awayScorers:[] },
+    { id:9, comp:'La Liga', flag:'🇪🇸', homeTeam:'Real Sociedad', awayTeam:'Villarreal',
+      homeScore:0, awayScore:1, status:'IN_PLAY', minute:78, homeScorers:[], awayScorers:['Morales 33\''] },
+    { id:10, comp:'Champions League', flag:'⭐', homeTeam:'PSG', awayTeam:'Bayern Munich',
+      homeScore:null, awayScore:null, status:'TIMED', kickOff:'21:00', homeScorers:[], awayScorers:[] },
+    { id:11, comp:'Bundesliga', flag:'🇩🇪', homeTeam:'Leverkusen', awayTeam:'Leipzig',
+      homeScore:1, awayScore:1, status:'PAUSED', minute:45, homeScorers:['Wirtz 38\''], awayScorers:['Werner 42\''] },
+    { id:12, comp:'Serie A', flag:'🇮🇹', homeTeam:'Napoli', awayTeam:'AC Milan',
+      homeScore:null, awayScore:null, status:'TIMED', kickOff:'20:45', homeScorers:[], awayScorers:[] },
+    { id:13, comp:'CAN', flag:'🌍', homeTeam:'Sénégal', awayTeam:'Côte d\'Ivoire',
+      homeScore:2, awayScore:1, status:'FINISHED', minute:90, homeScorers:['Mané 22\'','Diallo 77\''], awayScorers:['Haller 65\''] },
+    { id:14, comp:'Ligue 1', flag:'🇫🇷', homeTeam:'Monaco', awayTeam:'Lyon',
+      homeScore:0, awayScore:0, status:'IN_PLAY', minute:15, homeScorers:[], awayScorers:[] },
+    { id:15, comp:'Liga Portugal', flag:'🇵🇹', homeTeam:'Benfica', awayTeam:'Porto',
+      homeScore:1, awayScore:2, status:'FINISHED', minute:90, homeScorers:['Di María 55\''], awayScorers:['Pepê 31\'','Taremi 88\''] },
+    { id:16, comp:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', homeTeam:'Manchester United', awayTeam:'Newcastle',
+      homeScore:2, awayScore:0, status:'FINISHED', minute:90, homeScorers:['Rashford 7\'','Fernandes 68\''], awayScorers:[] },
+  ];
+  return base;
+}
+
+// ═══════════════════════════════════════════════════
+//  API FETCH
+// ═══════════════════════════════════════════════════
+async function fetchMatchesFromAPI(dateStr) {
+  const dateFrom = dateStr;
+  const dateTo = dateStr;
+  const url = `https://api.football-data.org/v4/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+  const resp = await fetch(url, {
+    headers: { 'X-Auth-Token': API_KEY }
+  });
+  if (!resp.ok) {
+    if (resp.status === 403) throw new Error('Clé API invalide ou expirée. Vérifie ta clé sur football-data.org');
+    if (resp.status === 429) throw new Error('Trop de requêtes. Attends 1 minute (plan gratuit = 10 req/min).');
+    throw new Error(`Erreur API: ${resp.status} ${resp.statusText}`);
+  }
+  const data = await resp.json();
+  return parseAPIMatches(data.matches || []);
+}
+
+function parseAPIMatches(raw) {
+  return raw.map(m => {
+    const hs = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? null;
+    const as = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? null;
+    const goals = m.goals || [];
+    const homeScorers = goals.filter(g => g.team?.id === m.homeTeam?.id && g.type !== 'OWN')
+      .map(g => `${g.scorer?.name?.split(' ').pop() || '?'} ${g.minute}'`);
+    const awayScorers = goals.filter(g => g.team?.id === m.awayTeam?.id && g.type !== 'OWN')
+      .map(g => `${g.scorer?.name?.split(' ').pop() || '?'} ${g.minute}'`);
+    const ko = m.utcDate ? new Date(m.utcDate) : null;
+    const koStr = ko ? `${pad(ko.getHours())}:${pad(ko.getMinutes())}` : '--:--';
+    return {
+      id: m.id,
+      comp: m.competition?.name || 'Unknown',
+      flag: getFlag(m.competition?.code || ''),
+      homeTeam: m.homeTeam?.shortName || m.homeTeam?.name || 'Home',
+      awayTeam: m.awayTeam?.shortName || m.awayTeam?.name || 'Away',
+      homeCrest: m.homeTeam?.crest || null,
+      awayCrest: m.awayTeam?.crest || null,
+      homeScore: hs,
+      awayScore: as,
+      status: m.status,
+      minute: m.minute || null,
+      kickOff: koStr,
+      homeScorers,
+      awayScorers,
+    };
+  });
+}
+
+function getFlag(code) {
+  const map = {PL:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',PD:'🇪🇸',BL1:'🇩🇪',SA:'🇮🇹',FL1:'🇫🇷',CL:'⭐',EL:'🟠',
+    EC:'🇪🇺',WC:'🌍',PPL:'🇵🇹',DED:'🇳🇱',BSA:'🇧🇷',MLS:'🇺🇸',CSL:'🇨🇳'};
+  return map[code] || '🏆';
+}
+
+// ═══════════════════════════════════════════════════
+//  LOAD MATCHES
+// ═══════════════════════════════════════════════════
+async function loadMatches() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  const dateStr = document.getElementById('datePicker').value;
+  const errorBox = document.getElementById('errorBox');
+  const corsNote = document.getElementById('corsNote');
+  errorBox.classList.remove('show');
+  corsNote.classList.remove('show');
+  document.getElementById('matchesContainer').innerHTML = `
+    <div class="loader-wrap"><div class="loader"></div><div class="loader-txt">Chargement des matchs…</div></div>`;
+
+  try {
+    if (IS_DEMO) {
+      await new Promise(r => setTimeout(r, 600));
+      allMatches = getDemoMatches(dateStr);
+    } else {
+      allMatches = await fetchMatchesFromAPI(dateStr);
+    }
+    renderAll();
+    resetCountdown();
+  } catch(err) {
+    console.error(err);
+    if (err.message && err.message.includes('Failed to fetch')) {
+      corsNote.classList.add('show');
+      allMatches = getDemoMatches(dateStr);
+      renderAll();
+    } else {
+      errorBox.textContent = '⚠️ ' + err.message;
+      errorBox.classList.add('show');
+      document.getElementById('matchesContainer').innerHTML = `
+        <div class="empty"><div class="empty-icon">😕</div>
+        <div class="empty-title">Erreur de chargement</div>
+        <div class="empty-sub">${err.message}</div></div>`;
+    }
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════
+function renderAll() {
+  buildLeagueTabs();
+  renderFiltered();
+}
+
+function buildLeagueTabs() {
+  const leagues = {};
+  allMatches.forEach(m => {
+    if (!leagues[m.comp]) leagues[m.comp] = { flag: m.flag, count: 0 };
+    leagues[m.comp].count++;
+  });
+
+  const tabs = document.getElementById('leagueTabs');
+  // keep ALL tab
+  document.getElementById('cnt-ALL').textContent = allMatches.length;
+
+  // remove old dynamic tabs
+  tabs.querySelectorAll('.ltab:not([data-league="ALL"])').forEach(t => t.remove());
+
+  Object.entries(leagues).sort((a,b) => b[1].count - a[1].count).forEach(([name, info]) => {
+    const t = document.createElement('div');
+    t.className = 'ltab' + (currentLeague === name ? ' active' : '');
+    t.dataset.league = name;
+    t.innerHTML = `<span class="flag">${info.flag}</span>${name}<span class="cnt">${info.count}</span>`;
+    t.onclick = () => filterLeague(name);
+    tabs.appendChild(t);
+  });
+
+  // Update ALL tab active state
+  tabs.querySelector('[data-league="ALL"]').classList.toggle('active', currentLeague === 'ALL');
+}
+
+function filterLeague(name) {
+  currentLeague = name;
+  document.querySelectorAll('.ltab').forEach(t => t.classList.toggle('active', t.dataset.league === name));
+  renderFiltered();
+}
+
+function renderFiltered() {
+  const filtered = currentLeague === 'ALL' ? allMatches
+    : allMatches.filter(m => m.comp === currentLeague);
+
+  // Summary counts
+  const live = filtered.filter(m => ['IN_PLAY','PAUSED'].includes(m.status)).length;
+  const sched = filtered.filter(m => ['TIMED','SCHEDULED'].includes(m.status)).length;
+  const fin = filtered.filter(m => m.status === 'FINISHED').length;
+  document.getElementById('sumLive').textContent = live;
+  document.getElementById('sumSched').textContent = sched;
+  document.getElementById('sumFin').textContent = fin;
+  document.getElementById('sumTotal').textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    const dateStr = document.getElementById('datePicker').value;
+    document.getElementById('matchesContainer').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📅</div>
+        <div class="empty-title">Aucun match trouvé</div>
+        <div class="empty-sub">Aucun match programmé pour le ${dateStr} dans cette compétition.<br>Essaie une autre date ou compétition.</div>
+      </div>`;
+    return;
+  }
+
+  // Group by competition
+  const byLeague = {};
+  filtered.forEach(m => {
+    if (!byLeague[m.comp]) byLeague[m.comp] = [];
+    byLeague[m.comp].push(m);
+  });
+
+  // Sort groups: live first, then scheduled, then finished
+  const sortedLeagues = Object.keys(byLeague).sort((a, b) => {
+    const aLive = byLeague[a].some(m => ['IN_PLAY','PAUSED'].includes(m.status));
+    const bLive = byLeague[b].some(m => ['IN_PLAY','PAUSED'].includes(m.status));
+    return (bLive ? 1 : 0) - (aLive ? 1 : 0);
+  });
+
+  let html = '<div class="matches-grid">';
+  // If showing all leagues, group by league
+  if (currentLeague === 'ALL') {
+    html = '';
+    sortedLeagues.forEach(league => {
+      const matches = byLeague[league];
+      const flag = matches[0].flag;
+      html += `<div class="league-section">
+        <div class="league-section-hdr"><span class="flag">${flag}</span>${league} <span style="margin-left:auto;font-size:11px;color:var(--muted)">${matches.length} match${matches.length>1?'s':''}</span></div>
+        <div class="matches-grid">`;
+      matches.sort(sortMatches).forEach(m => { html += renderCard(m); });
+      html += '</div></div>';
+    });
+  } else {
+    filtered.sort(sortMatches).forEach(m => { html += renderCard(m); });
+    html += '</div>';
+  }
+
+  document.getElementById('matchesContainer').innerHTML = html;
+}
+
+function sortMatches(a, b) {
+  const order = {IN_PLAY:0, PAUSED:1, TIMED:2, SCHEDULED:2, FINISHED:3, POSTPONED:4};
+  return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+}
+
+function renderCard(m) {
+  const isLive = ['IN_PLAY','PAUSED'].includes(m.status);
+  const isFinished = m.status === 'FINISHED';
+  const isHT = m.status === 'PAUSED';
+
+  let statusHtml = '';
+  if (isLive && !isHT) statusHtml = `<span class="status-pill status-live">⚽ ${m.minute ? m.minute+"'" : 'EN DIRECT'}</span>`;
+  else if (isHT) statusHtml = `<span class="status-pill status-ht">MI-TEMPS</span>`;
+  else if (isFinished) statusHtml = `<span class="status-pill status-finished">FIN • 90'</span>`;
+  else if (m.status === 'POSTPONED') statusHtml = `<span class="status-pill status-postponed">REPORTÉ</span>`;
+  else statusHtml = `<span class="status-pill status-scheduled">${m.kickOff || 'PROGRAMMÉ'}</span>`;
+
+  const scoreColor = isLive ? 'live' : '';
+  const scoreHtml = (m.homeScore !== null && m.awayScore !== null)
+    ? `<span class="score ${scoreColor}">${m.homeScore}</span><span class="score-sep"> : </span><span class="score ${scoreColor}">${m.awayScore}</span>`
+    : `<span class="score" style="font-size:28px;color:var(--muted)">vs</span>`;
+
+  const homeCrest = m.homeCrest
+    ? `<img class="team-crest" src="${m.homeCrest}" alt="${m.homeTeam}" onerror="this.style.display='none'">`
+    : `<div class="team-crest-placeholder">⚽</div>`;
+  const awayCrest = m.awayCrest
+    ? `<img class="team-crest" src="${m.awayCrest}" alt="${m.awayTeam}" onerror="this.style.display='none'">`
+    : `<div class="team-crest-placeholder">⚽</div>`;
+
+  const scorersHtml = (m.homeScorers?.length > 0 || m.awayScorers?.length > 0)
+    ? `<div class="scorers">
+        <div class="scorers-side">${(m.homeScorers||[]).map(s=>`<div class="scorer-entry">⚽ ${s}</div>`).join('')}</div>
+        <div class="scorers-side right">${(m.awayScorers||[]).map(s=>`<div class="scorer-entry">${s} ⚽</div>`).join('')}</div>
+       </div>` : '';
+
+  return `
+  <div class="match-card ${isLive ? 'live-card' : ''}">
+    <div class="card-league"><span class="flag">${m.flag}</span>${m.comp}</div>
+    <div class="card-body">
+      <div class="match-status">${statusHtml}</div>
+      <div class="teams-row">
+        <div class="team">${homeCrest}<div class="team-name">${m.homeTeam}</div></div>
+        <div class="score-block">${scoreHtml}</div>
+        <div class="team">${awayCrest}<div class="team-name">${m.awayTeam}</div></div>
+      </div>
+      ${scorersHtml}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+//  AUTO REFRESH
+// ═══════════════════════════════════════════════════
+function resetCountdown() {
+  countdownSecs = 60;
+  clearInterval(countdownInterval);
+  clearInterval(autoRefreshInterval);
+  document.getElementById('countdownTxt').textContent = countdownSecs;
+  countdownInterval = setInterval(() => {
+    countdownSecs--;
+    document.getElementById('countdownTxt').textContent = countdownSecs;
+    if (countdownSecs <= 0) {
+      clearInterval(countdownInterval);
+      loadMatches();
+    }
+  }, 1000);
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT & CONTROLS
+// ═══════════════════════════════════════════════════
+function onDateChange() {
+  currentLeague = 'ALL';
+  loadMatches();
+}
+
+function saveKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key || key.length < 20) {
+    alert('Clé API invalide. Elle doit faire au moins 20 caractères.');
+    return;
+  }
+  API_KEY = key;
+  IS_DEMO = false;
+  localStorage.setItem('ls_api_key', key);
+  document.getElementById('apiOverlay').style.display = 'none';
+  loadMatches();
+}
+
+function useDemo() {
+  IS_DEMO = true;
+  API_KEY = '';
+  document.getElementById('apiOverlay').style.display = 'none';
+  loadMatches();
+}
+
+function changeKey() {
+  document.getElementById('apiKeyInput').value = API_KEY || '';
+  document.getElementById('apiOverlay').style.display = 'flex';
+}
+
+// Start
+if (API_KEY) {
+  IS_DEMO = false;
+  document.getElementById('apiOverlay').style.display = 'none';
+  loadMatches();
+} else {
+  // Show modal
+}
+</script>
+</body>
+</html>
