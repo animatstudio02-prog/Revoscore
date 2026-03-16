@@ -594,7 +594,7 @@ header {
 // ═══════════════════════════════════════════════════
 
 const COMPETITIONS = {
-  PL:  { name:'Premier League',     flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', id:2021 },
+  PL:  { name:'Premier League',     flag:'ENG', id:2021 },
   PD:  { name:'La Liga',            flag:'🇪🇸', id:2014 },
   BL1: { name:'Bundesliga',         flag:'🇩🇪', id:2002 },
   SA:  { name:'Serie A',            flag:'🇮🇹', id:2019 },
@@ -633,7 +633,7 @@ function getDemoMatches(dateStr) {
   const base = [
     { id:1, comp:'Champions League', flag:'⭐', homeTeam:'Real Madrid', awayTeam:'Manchester City',
       homeScore:2, awayScore:1, status:'IN_PLAY', minute:67, homeScorers:['Vinicius 12\'','Benzema 34\''], awayScorers:['Haaland 58\''] },
-    { id:2, comp:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', homeTeam:'Arsenal', awayTeam:'Liverpool',
+    { id:2, comp:'Premier League', flag:'ENG', homeTeam:'Arsenal', awayTeam:'Liverpool',
       homeScore:1, awayScore:1, status:'IN_PLAY', minute:52, homeScorers:['Saka 28\''], awayScorers:['Salah 41\''] },
     { id:3, comp:'La Liga', flag:'🇪🇸', homeTeam:'Barcelona', awayTeam:'Atletico Madrid',
       homeScore:3, awayScore:0, status:'FINISHED', minute:90, homeScorers:['Lewandowski 8\'','Gavi 55\'','Yamal 78\''], awayScorers:[] },
@@ -645,7 +645,7 @@ function getDemoMatches(dateStr) {
       homeScore:2, awayScore:2, status:'FINISHED', minute:90, homeScorers:['Lautaro 23\'','Thuram 71\''], awayScorers:['Vlahovic 44\'','Chiesa 88\''] },
     { id:7, comp:'Europa League', flag:'🟠', homeTeam:'Roma', awayTeam:'Sevilla',
       homeScore:1, awayScore:0, status:'IN_PLAY', minute:34, homeScorers:['Dybala 19\''], awayScorers:[] },
-    { id:8, comp:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', homeTeam:'Chelsea', awayTeam:'Tottenham',
+    { id:8, comp:'Premier League', flag:'ENG', homeTeam:'Chelsea', awayTeam:'Tottenham',
       homeScore:null, awayScore:null, status:'TIMED', kickOff:'18:30', homeScorers:[], awayScorers:[] },
     { id:9, comp:'La Liga', flag:'🇪🇸', homeTeam:'Real Sociedad', awayTeam:'Villarreal',
       homeScore:0, awayScore:1, status:'IN_PLAY', minute:78, homeScorers:[], awayScorers:['Morales 33\''] },
@@ -661,7 +661,7 @@ function getDemoMatches(dateStr) {
       homeScore:0, awayScore:0, status:'IN_PLAY', minute:15, homeScorers:[], awayScorers:[] },
     { id:15, comp:'Liga Portugal', flag:'🇵🇹', homeTeam:'Benfica', awayTeam:'Porto',
       homeScore:1, awayScore:2, status:'FINISHED', minute:90, homeScorers:['Di María 55\''], awayScorers:['Pepê 31\'','Taremi 88\''] },
-    { id:16, comp:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', homeTeam:'Manchester United', awayTeam:'Newcastle',
+    { id:16, comp:'Premier League', flag:'ENG', homeTeam:'Manchester United', awayTeam:'Newcastle',
       homeScore:2, awayScore:0, status:'FINISHED', minute:90, homeScorers:['Rashford 7\'','Fernandes 68\''], awayScorers:[] },
   ];
   return base;
@@ -717,7 +717,7 @@ function parseAPIMatches(raw) {
 }
 
 function getFlag(code) {
-  const map = {PL:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',PD:'🇪🇸',BL1:'🇩🇪',SA:'🇮🇹',FL1:'🇫🇷',CL:'⭐',EL:'🟠',
+  const map = {PL:'ENG',PD:'🇪🇸',BL1:'🇩🇪',SA:'🇮🇹',FL1:'🇫🇷',CL:'⭐',EL:'🟠',
     EC:'🇪🇺',WC:'🌍',PPL:'🇵🇹',DED:'🇳🇱',BSA:'🇧🇷',MLS:'🇺🇸',CSL:'🇨🇳'};
   return map[code] || '🏆';
 }
